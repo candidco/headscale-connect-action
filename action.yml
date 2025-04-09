@@ -1,0 +1,85 @@
+name: "Connect to Headscale"
+description: "Connects to a Headscale using the Tailscale CLI"
+
+inputs:
+  aws-access-key-id:
+    description: "AWS Access Key ID"
+    required: true
+  aws-secret-access-key:
+    description: "AWS Secret Access Key"
+    required: true
+  aws-region:
+    description: "AWS Region"
+    required: false
+    default: "us-east-1"
+  headscale-cli-address:
+    description: "Headscale CLI Address"
+    required: true
+  headscale-cli-api-key:
+    description: "Headscale CLI API Key"
+    required: true
+  headscale-user:
+    description: "Headscale User"
+    required: false
+    default: "github-actions"
+
+runs:
+  using: "composite"
+  steps:
+
+    - id: configure-aws-credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ inputs.aws-access-key-id }}
+        aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
+        aws-region: ${{ inputs.aws-region }}
+
+    - id: install-headscale-cli
+      shell: bash
+      run: |
+        set -e
+        echo "Installing and configuring headscale cli"
+        mkdir -p $HOME/.local/bin
+        curl -L -s -o $HOME/.local/bin/headscale https://github.com/juanfont/headscale/releases/download/v0.23.0/headscale_0.23.0_linux_amd64
+        chmod +x $HOME/.local/bin/headscale
+        echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+        
+        # Create an empty config file (workaround for issue https://github.com/juanfont/headscale/issues/2193)
+        mkdir -p $HOME/.headscale && touch $HOME/.headscale/config.yaml
+    
+    - id: install-tailscale-cli
+      shell: bash
+      run: |
+        set -x
+        echo "Installing Tailscale cli"
+        curl -fsSL https://tailscale.com/install.sh | sh
+
+    - id: configure-headscale-user
+      shell: bash
+      env:
+        HEADSCALE_CLI_ADDRESS: ${{ inputs.headscale-cli-address }}
+        HEADSCALE_CLI_API_KEY: ${{ inputs.headscale-cli-api-key }}
+        HEADSCALE_USER: ${{ inputs.headscale-user }}
+      run: |
+        set -e
+        echo "Creating user $HEADSCALE_USER..."
+        headscale -c $HOME/.headscale/config.yaml user create $HEADSCALE_USER || true
+
+        echo "Creating preauthkey for user $HEADSCALE_USER..."
+        TAILSCALE_CLI_AUTH_KEY=$(headscale -c $HOME/.headscale/config.yaml preauthkey create --ephemeral --user $HEADSCALE_USER --expiration 30m -o json | jq -r .key)
+        echo "TAILSCALE_CLI_AUTH_KEY=$TAILSCALE_CLI_AUTH_KEY" >> $GITHUB_ENV
+
+    - id: connect-tailscale
+      shell: bash
+      env:
+        HEADSCALE_CLI_ADDRESS: ${{ inputs.headscale-cli-address }}
+      run: |
+        echo "Connecting to Tailscale..."
+        sudo tailscale up \
+          --accept-dns \
+          --accept-routes \
+          --authkey=${TAILSCALE_CLI_AUTH_KEY} \
+          --login-server=https://${HEADSCALE_CLI_ADDRESS} \
+          --operator=${USER} \
+          --timeout=90s 
+        tailscale status
