@@ -28,7 +28,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-
     - id: install-headscale-cli
       shell: bash
       env:
@@ -41,7 +40,6 @@ runs:
         curl -L -s -o $HOME/.local/bin/headscale https://github.com/juanfont/headscale/releases/download/v${HEADSCALE_VERSION}/headscale_${HEADSCALE_VERSION}_${HEADSCALE_OS_ARCH}
         chmod +x $HOME/.local/bin/headscale
         echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-        
         # Create an empty config file (workaround for issue https://github.com/juanfont/headscale/issues/2193)
         mkdir -p $HOME/.headscale && touch $HOME/.headscale/config.yaml
     
@@ -63,7 +61,6 @@ runs:
         set -e
         echo "Creating user $HEADSCALE_USER..."
         headscale -c $HOME/.headscale/config.yaml user create $HEADSCALE_USER || true
-
         echo "Creating preauthkey for user $HEADSCALE_USER..."
         TAILSCALE_CLI_AUTH_KEY=$(headscale -c $HOME/.headscale/config.yaml preauthkey create --ephemeral --user $HEADSCALE_USER --expiration $HEADSCALE_PREAUTHKEY_EXPIRATION -o json | jq -r .key)
         # Mask the auth key in the logs
