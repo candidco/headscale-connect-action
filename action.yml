@@ -80,4 +80,5 @@ runs:
           --login-server=https://${HEADSCALE_CLI_ADDRESS} \
           --operator=${USER} \
           --timeout=90s 
+        echo "Tailscale status:"
         tailscale status
