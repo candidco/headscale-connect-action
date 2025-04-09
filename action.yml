@@ -23,7 +23,7 @@ runs:
         set -e
         echo "Installing and configuring headscale cli"
         mkdir -p $HOME/.local/bin
-        curl -L -s -o $HOME/.local/bin/headscale https://github.com/juanfont/headscale/releases/download/v0.23.0/headscale_0.23.0_linux_amd64
+        curl -L -s -o $HOME/.local/bin/headscale https://github.com/juanfont/headscale/releases/download/v0.25.1/headscale_0.25.1_linux_amd64
         chmod +x $HOME/.local/bin/headscale
         echo "$HOME/.local/bin" >> "$GITHUB_PATH"
         
