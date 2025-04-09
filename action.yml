@@ -66,6 +66,8 @@ runs:
 
         echo "Creating preauthkey for user $HEADSCALE_USER..."
         TAILSCALE_CLI_AUTH_KEY=$(headscale -c $HOME/.headscale/config.yaml preauthkey create --ephemeral --user $HEADSCALE_USER --expiration $HEADSCALE_PREAUTHKEY_EXPIRATION -o json | jq -r .key)
+        # Mask the auth key in the logs
+        echo "::add-mask::$TAILSCALE_CLI_AUTH_KEY"
         echo "TAILSCALE_CLI_AUTH_KEY=$TAILSCALE_CLI_AUTH_KEY" >> $GITHUB_ENV
 
     - id: connect-tailscale
