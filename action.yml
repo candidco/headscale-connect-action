@@ -34,7 +34,6 @@ runs:
         HEADSCALE_VERSION: ${{ inputs.headscale-version }}
         HEADSCALE_OS_ARCH: ${{ inputs.headscale-os-arch }}
       run: |
-        set -e
         echo "Installing and configuring headscale cli"
         mkdir -p $HOME/.local/bin
         curl -L -s -o $HOME/.local/bin/headscale https://github.com/juanfont/headscale/releases/download/v${HEADSCALE_VERSION}/headscale_${HEADSCALE_VERSION}_${HEADSCALE_OS_ARCH}
@@ -46,7 +45,6 @@ runs:
     - id: install-tailscale-cli
       shell: bash
       run: |
-        set -x
         echo "Installing Tailscale cli"
         curl -fsSL https://tailscale.com/install.sh | sh
 
@@ -58,7 +56,6 @@ runs:
         HEADSCALE_USER: ${{ inputs.headscale-user }}
         HEADSCALE_PREAUTHKEY_EXPIRATION: ${{ inputs.headscale-preauthkey-expiration }}
       run: |
-        set -e
         echo "Creating user $HEADSCALE_USER..."
         headscale -c $HOME/.headscale/config.yaml user create $HEADSCALE_USER || true
         echo "Creating preauthkey for user $HEADSCALE_USER..."
