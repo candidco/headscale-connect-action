@@ -1,6 +1,10 @@
 name: "Connect to Headscale"
 description: "Connects to a Headscale server using the Tailscale CLI"
 
+branding:
+  icon: 'server'
+  color: 'red'
+  
 inputs:
   headscale-cli-address:
     description: "Headscale CLI Address"
