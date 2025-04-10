@@ -65,17 +65,19 @@ runs:
         echo "TAILSCALE_CLI_AUTH_KEY=$TAILSCALE_CLI_AUTH_KEY" >> $GITHUB_ENV
 
     - id: connect-tailscale
-      shell: bash
-      env:
-        HEADSCALE_CLI_ADDRESS: ${{ inputs.headscale-cli-address }}
-      run: |
-        echo "Connecting to Tailscale..."
-        sudo tailscale up \
-          --accept-dns \
-          --accept-routes \
-          --authkey=${TAILSCALE_CLI_AUTH_KEY} \
-          --login-server=https://${HEADSCALE_CLI_ADDRESS} \
-          --operator=${USER} \
-          --timeout=90s 
-        echo "Tailscale status:"
-        tailscale status
+      uses: gacts/run-and-post-run@v1.4.2
+      with:
+        run: |
+          echo "Connecting to Tailscale..."
+          sudo tailscale up \
+            --accept-dns \
+            --accept-routes \
+            --authkey=${TAILSCALE_CLI_AUTH_KEY} \
+            --login-server=https://${{ inputs.headscale-cli-address }} \
+            --operator=${USER} \
+            --timeout=90s 
+          echo "Tailscale status:"
+          tailscale status
+        post: |
+          tailscale down || true
+          echo "Tailscale is down!"
